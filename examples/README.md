@@ -1,30 +1,48 @@
 # Example Data
 
-This directory contains sample data files for testing and demonstration purposes.
+This directory is intended for sample data files for testing and demonstration purposes.
 
-## Files
+## Required Files (Not Included in Repository)
 
-- `7592.ses` - Sample SESAME equation of state file (Polystyrene)
-- `7592.cn4` - Reference CN4/IONMIX file generated from 7592.ses using opac-convert
+To test the application, you need to provide your own data files:
+
+- `*.ses` - SESAME equation of state files
+- `*.cn4` - CN4/IONMIX reference files (optional, for benchmark testing)
+
+## Sample Data Suggestion
+
+For testing purposes, you can use:
+- **Material**: Polystyrene (SESAME table 7592)
+- **Elements**: Hydrogen + Carbon
+- **Test conversion**: `--Znum 1,6 --Xfracs .5,.5 --Tmin 0.1`
 
 ## Usage
 
-These files can be used to test the application functionality:
+Once you have obtained sample SESAME files:
 
-1. **Load SESAME file**: Use `7592.ses` to test the file loading and analysis features
-2. **Conversion benchmark**: Use `7592.cn4` as a reference for conversion accuracy testing
+1. **Load SESAME file**: Place `.ses` files in this directory and use the GUI to load them
+2. **Test conversion**: Use the conversion feature to generate CN4 files
+3. **Benchmark testing**: Compare generated files with reference implementations
 
 ## Command Line Equivalent
 
-The reference CN4 file was generated using:
+For reference, CN4 files can be generated using opac-convert:
 ```bash
-opac-convert --Znum 1,6 --Xfracs .5,.5 --Tmin 0.1 7592.ses
+opac-convert --Znum 1,6 --Xfracs .5,.5 --Tmin 0.1 your_file.ses
 ```
 
-## Material Properties
+## Data Sources
 
-- **Material**: Polystyrene (C₈H₈)
-- **Elements**: Hydrogen (50%) + Carbon (50%)
-- **SESAME Table ID**: 7592
+SESAME data files can be obtained from:
+- [Los Alamos National Laboratory](https://www.lanl.gov/projects/data/eos.html)
+- Your institution's physics data repository
+- Collaborative research projects
 
-These files are provided for testing purposes only and may not represent the most current or accurate data for production use.
+## Note
+
+Data files are not included in this repository due to:
+- **Size considerations**: SESAME files can be large (MB to GB)
+- **Licensing**: Data may have specific usage restrictions
+- **Version control**: Binary data files are not suitable for Git tracking
+
+Please obtain appropriate SESAME data files according to your research needs and institutional access.

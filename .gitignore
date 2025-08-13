@@ -74,6 +74,12 @@ Thumbs.db
 *.h5
 *.hdf5
 
+# Examples directory - exclude data files, keep documentation
+examples/*.ses
+examples/*.cn4
+examples/*.h5
+examples/*.hdf5
+
 # Temporary files
 temp_*
 test_*
