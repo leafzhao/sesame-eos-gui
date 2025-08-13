@@ -83,6 +83,8 @@ cd sesame-eos-gui
 python launch.py  # 自动安装依赖并启动
 ```
 
+**注意**: 需要用户自行获取 SESAME 数据文件进行测试，详见 `examples/README.md`
+
 ### 📊 性能提升
 
 - **准确性**: 99.98% → 100% 转换准确度
