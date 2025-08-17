@@ -2,6 +2,9 @@
 
 <div align="center">
 
+[![English](https://img.shields.io/badge/Language-English-blue.svg)](README.md)
+[![中文](https://img.shields.io/badge/语言-中文-red.svg)](README_CN.md)
+
 ![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -9,193 +12,191 @@
 
 **A standalone GUI application for analyzing SESAME equation of state (EoS) data files**
 
-*开箱即用的SESAME方程状态数据分析工具*
-
 </div>
 
-## ✨ 主要特性 (Key Features)
+## ✨ Key Features
 
-### 🔧 **开箱即用 (Ready to Use)**
-- **自动依赖管理**: 无需手动安装复杂依赖，程序自动处理opacplot2和hedp的安装
-- **智能安装**: 自动处理Cython版本兼容性问题
-- **跨平台支持**: Windows、macOS、Linux通用
+### 🔧 **Ready to Use**
+- **Automatic Dependency Management**: No manual installation of complex dependencies, program automatically handles opacplot2 and hedp installation
+- **Smart Installation**: Automatically handles Cython version compatibility issues
+- **Cross-Platform Support**: Universal for Windows, macOS, and Linux
 
-### 📊 **SESAME文件分析**
-- 加载和分析SESAME格式文件(.ses)
-- 自动检测材料ID和基本属性
-- 支持单精度和双精度格式
-- 生成全面的材料属性报告
+### 📊 **SESAME File Analysis**
+- Load and analyze SESAME format files (.ses)
+- Automatically detect material ID and basic properties
+- Support for single and double precision formats
+- Generate comprehensive material property reports
 
-### 📈 **数据可视化**
-- **密度-温度网格**: 交互式网格点分布图
-- **内能分析**: 等高线图，自动检测正内能温度
-- **压强分析**: 压强分布可视化
-- 支持不同EoS类型(total、electron、ion等)
-- 导出图表为PNG、PDF、SVG格式
+### 📈 **Data Visualization**
+- **Density-Temperature Grid**: Interactive grid point distribution plots
+- **Internal Energy Analysis**: Contour plots with automatic positive internal energy temperature detection
+- **Pressure Analysis**: Pressure distribution visualization
+- Support for different EoS types (total, electron, ion, etc.)
+- Export charts in PNG, PDF, SVG formats
 
-### 🔄 **格式转换 (Enhanced in v2.2.0)**
-- **精确转换**: 将SESAME文件转换为CN4/IONMIX格式
-- **离子密度网格**: 直接使用opacplot2的原生离子数密度数据
-- **100%准确**: 与原始opac-convert命令输出完全一致
-- **参数验证**: 智能参数验证和建议
-- **实时进度**: 转换过程可视化显示
+### 🔄 **Format Conversion (Enhanced in v2.2.0)**
+- **Precise Conversion**: Convert SESAME files to CN4/IONMIX format
+- **Ion Density Grid**: Direct use of opacplot2's native ion number density data
+- **100% Accuracy**: Completely consistent with original opac-convert command output
+- **Parameter Validation**: Smart parameter validation and suggestions
+- **Real-time Progress**: Visual display of conversion process
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 方法1：使用启动器（推荐）
+### Method 1: Using Launcher (Recommended)
 ```bash
 git clone <your-repo-url>
 cd sesame-eos-gui
 python launch.py
 ```
 
-启动器会：
-1. 自动检查依赖
-2. 如需要会自动安装opacplot2和hedp
-3. 启动GUI界面
+The launcher will:
+1. Automatically check dependencies
+2. Automatically install opacplot2 and hedp if needed
+3. Launch the GUI interface
 
-### 方法2：手动安装
+### Method 2: Manual Installation
 ```bash
 git clone <your-repo-url>
 cd sesame-eos-gui
 
-# 安装依赖
+# Install dependencies
 python setup.py
 
-# 启动GUI
+# Launch GUI
 python main.py
 ```
 
-## 📋 系统要求
+## 📋 System Requirements
 
-- Python 3.8或更高版本
-- 网络连接（首次运行时安装依赖）
-- 操作系统：Windows、macOS、Linux
+- Python 3.8 or higher
+- Internet connection (for dependency installation on first run)
+- Operating System: Windows, macOS, Linux
 
-## 📖 使用指南
+## 📖 User Guide
 
-### 1. **加载SESAME文件**
-- 点击"Load SES File"按钮
-- 选择.ses格式的SESAME文件
-- 程序自动分析并显示基本信息
+### 1. **Load SESAME File**
+- Click the "Load SES File" button
+- Select a SESAME file in .ses format
+- The program automatically analyzes and displays basic information
 
-### 2. **查看材料报告**
-- 切换到"Material Report"标签
-- 点击"Generate Report"查看详细分析
-- 可保存报告为文本文件
+### 2. **View Material Report**
+- Switch to the "Material Report" tab
+- Click "Generate Report" to view detailed analysis
+- Save the report as a text file
 
-### 3. **可视化密度-温度网格**
-- 切换到"D-T Grid Visualization"标签
-- 选择EoS类型（total、electron、ion等）
-- 点击"Generate Plot"创建可视化图表
-- 支持多种格式导出
+### 3. **Visualize Density-Temperature Grid**
+- Switch to the "D-T Grid Visualization" tab
+- Select EoS type (total, electron, ion, etc.)
+- Click "Generate Plot" to create visualization charts
+- Support for multiple export formats
 
-### 4. **分析内能分布**
-- 切换到"Internal Energy Analysis"标签
-- 选择EoS类型
-- 点击"Analyze & Plot"执行分析
-- 查看最小正内能温度
+### 4. **Analyze Internal Energy Distribution**
+- Switch to the "Internal Energy Analysis" tab
+- Select EoS type
+- Click "Analyze & Plot" to perform analysis
+- View minimum positive internal energy temperature
 
-### 5. **转换文件格式**
-- 切换到"SES to CN4 Conversion"标签
-- 配置转换参数（原子序数、分数等）
-- 点击"Load Suggested Parameters"获取自动建议
-- 点击"Convert to CN4"执行转换
+### 5. **Convert File Format**
+- Switch to the "SES to CN4 Conversion" tab
+- Configure conversion parameters (atomic number, fractions, etc.)
+- Click "Load Suggested Parameters" for automatic suggestions
+- Click "Convert to CN4" to execute conversion
 
-## 🔧 依赖管理
+## 🔧 Dependency Management
 
-程序自动管理以下依赖：
+The program automatically manages the following dependencies:
 
-### 核心依赖
-- `opacplot2`: SESAME数据处理库
-- `hedp`: 高能密度物理包
-- `numpy`, `scipy`, `matplotlib`: 科学计算库
+### Core Dependencies
+- `opacplot2`: SESAME data processing library
+- `hedp`: High Energy Density Physics package
+- `numpy`, `scipy`, `matplotlib`: Scientific computing libraries
 
-### 重要说明
-- 程序会自动安装 `cython<3.0` 以确保hedp兼容性
-- 首次运行可能需要几分钟来安装依赖
-- 安装过程会显示进度信息
+### Important Notes
+- The program automatically installs `cython<3.0` to ensure hedp compatibility
+- First run may take a few minutes to install dependencies
+- Installation process displays progress information
 
-## 🗂️ 项目结构
+## 🗂️ Project Structure
 
 ```
 sesame-eos-gui/
-├── main.py              # 主GUI应用程序
-├── launch.py            # 启动器脚本
-├── setup.py             # 依赖安装脚本
-├── requirements.txt     # Python包依赖
-├── sesame_analyzer.py   # SESAME数据分析模块
-├── opac_converter.py    # 格式转换模块
-└── README.md           # 使用说明
+├── main.py              # Main GUI application
+├── launch.py            # Launcher script
+├── setup.py             # Dependency installation script
+├── requirements.txt     # Python package dependencies
+├── sesame_analyzer.py   # SESAME data analysis module
+├── opac_converter.py    # Format conversion module
+└── README.md           # User documentation
 ```
 
-## ⚠️ 故障排除
+## ⚠️ Troubleshooting
 
-### 常见问题
+### Common Issues
 
-1. **依赖安装失败**
+1. **Dependency Installation Failed**
    ```bash
-   # 手动安装
+   # Manual installation
    python setup.py
    ```
 
-2. **Cython版本问题**
+2. **Cython Version Issues**
    ```bash
    pip uninstall cython -y
    pip install "cython<3.0"
    ```
 
-3. **opacplot2安装失败**
+3. **opacplot2 Installation Failed**
    ```bash
    pip install git+https://github.com/flash-center/opacplot2.git
    ```
 
-4. **hedp安装失败**
+4. **hedp Installation Failed**
    ```bash
    pip install "cython<3.0"
    pip install git+https://github.com/luli/hedp.git
    ```
 
-### 获取帮助
+### Getting Help
 
-如遇到问题，请检查：
-1. Python版本是否>=3.8
-2. 网络连接是否正常
-3. 是否有足够的磁盘空间
-4. 终端/命令提示符的权限
+If you encounter problems, please check:
+1. Python version is >=3.8
+2. Internet connection is working
+3. Sufficient disk space available
+4. Terminal/command prompt permissions
 
-## 📝 更新日志
+## 📝 Changelog
 
 ### v2.2.0 (2024-08)
-- **🎯 核心修复**: 格式转换功能重大改进
-- **✅ 精确转换**: 直接使用`eos_dict['idens']`作为离子数密度网格
-- **🔧 代码优化**: 移除手动密度转换逻辑，减少81行代码(-20%)
-- **📊 100%准确**: 与opac-convert命令输出完全一致（二进制级别匹配）
-- **🎨 遵循原则**: 严格按照KISS、DRY、SRP软件工程原则重构
-- **📋 完整验证**: 添加benchmark测试工具确保转换正确性
+- **🎯 Core Fix**: Major improvement to format conversion functionality
+- **✅ Precise Conversion**: Direct use of `eos_dict['idens']` as ion number density grid
+- **🔧 Code Optimization**: Removed manual density conversion logic, reduced 81 lines of code (-20%)
+- **📊 100% Accuracy**: Completely consistent with opac-convert command output (binary-level matching)
+- **🎨 Principle Adherence**: Strict refactoring according to KISS, DRY, SRP software engineering principles
+- **📋 Complete Validation**: Added benchmark testing tools to ensure conversion correctness
 
 ### v2.1.1
-- 改进转换功能的错误处理
-- 优化用户界面响应
+- Improved error handling for conversion functionality
+- Optimized user interface responsiveness
 
 ### v2.0
-- 重写为独立应用，无需安装在opacplot2目录中
-- 自动依赖管理
-- 改进的用户界面
-- 更好的错误处理
+- Rewritten as standalone application, no need to install in opacplot2 directory
+- Automatic dependency management
+- Improved user interface
+- Better error handling
 
 ### v1.0
-- 初始版本
-- 基本的SESAME文件分析功能
+- Initial version
+- Basic SESAME file analysis functionality
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎提交问题报告和功能建议！
+Welcome to submit issue reports and feature suggestions!
 
-## 📄 许可证
+## 📄 License
 
-MIT License - 详见LICENSE文件
+MIT License - See LICENSE file for details
 
 ---
 
-**开始使用：运行 `python launch.py` 即可！**
+**Get Started: Run `python launch.py` to begin!**
