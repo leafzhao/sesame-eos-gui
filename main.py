@@ -106,7 +106,7 @@ class SESAMEAnalysisGUI:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("SESAME EoS Analysis Tool v2.1.1")
+        self.root.title("SESAME EoS Analysis Tool v2.2.0")
         self.root.geometry("1200x800")
         
         # Initialize components
@@ -220,11 +220,12 @@ class SESAMEAnalysisGUI:
         self.notebook.add(viz_frame, text="D-T Grid Visualization")
         
         viz_frame.columnconfigure(0, weight=1)
-        viz_frame.rowconfigure(1, weight=1)
+        viz_frame.columnconfigure(1, weight=1)
+        viz_frame.rowconfigure(1, weight=1)  # Plot area: expanded
         
         # Controls
         viz_controls = ttk.LabelFrame(viz_frame, text="Visualization Controls", padding="10")
-        viz_controls.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        viz_controls.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
         
         ttk.Label(viz_controls, text="EoS Type:").grid(row=0, column=0, padx=(0, 10))
         
@@ -236,14 +237,52 @@ class SESAMEAnalysisGUI:
         ttk.Button(viz_controls, text="Generate Plot", command=self.plot_dt_grid).grid(row=0, column=2, padx=(0, 10))
         ttk.Button(viz_controls, text="Save Plot", command=self.save_dt_plot).grid(row=0, column=3)
         
-        # Plot area
+        # Plot area - now spans both columns for larger size
         self.viz_frame_plot = ttk.Frame(viz_frame)
-        self.viz_frame_plot.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.viz_frame_plot.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S))
         self.viz_frame_plot.columnconfigure(0, weight=1)
         self.viz_frame_plot.rowconfigure(0, weight=1)
         
         self.viz_canvas = None
         self.viz_toolbar = None
+        
+        # Density data section (left column)
+        density_data_frame = ttk.LabelFrame(viz_frame, text="Density Data", padding="5")
+        density_data_frame.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(10, 0), padx=(0, 5))
+        
+        # Density data display
+        self.density_data_text = tk.Text(density_data_frame, height=8, width=50, wrap=tk.NONE)
+        density_scrollbar = ttk.Scrollbar(density_data_frame, orient=tk.VERTICAL, command=self.density_data_text.yview)
+        self.density_data_text.configure(yscrollcommand=density_scrollbar.set)
+        self.density_data_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        density_scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        
+        # Density options and copy
+        density_options_frame = ttk.Frame(density_data_frame)
+        density_options_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(5, 0))
+        
+        self.density_type_var = tk.StringVar(value="mass")
+        ttk.Radiobutton(density_options_frame, text="Mass Density", variable=self.density_type_var, 
+                       value="mass", command=self.update_density_display).grid(row=0, column=0, padx=(0, 10))
+        ttk.Radiobutton(density_options_frame, text="Ion Density", variable=self.density_type_var, 
+                       value="ion", command=self.update_density_display).grid(row=0, column=1, padx=(0, 10))
+        ttk.Button(density_options_frame, text="Copy Data", command=self.copy_density_data).grid(row=0, column=2)
+        
+        # Temperature data section (right column)
+        temp_data_frame = ttk.LabelFrame(viz_frame, text="Temperature Data", padding="5")
+        temp_data_frame.grid(row=2, column=1, sticky=(tk.W, tk.E), pady=(10, 0), padx=(5, 0))
+        
+        # Temperature data display
+        self.temp_data_text = tk.Text(temp_data_frame, height=8, width=50, wrap=tk.NONE)
+        temp_scrollbar = ttk.Scrollbar(temp_data_frame, orient=tk.VERTICAL, command=self.temp_data_text.yview)
+        self.temp_data_text.configure(yscrollcommand=temp_scrollbar.set)
+        self.temp_data_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        temp_scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        
+        # Temperature copy button
+        temp_options_frame = ttk.Frame(temp_data_frame)
+        temp_options_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(5, 0))
+        ttk.Button(temp_options_frame, text="Copy Data", command=self.copy_temp_data).grid(row=0, column=0)
         
     def setup_internal_energy_tab(self):
         """Setup the internal energy analysis tab"""
@@ -540,6 +579,7 @@ class SESAMEAnalysisGUI:
             
             if fig:
                 self.display_plot(fig, self.viz_frame_plot, 'viz')
+                self.update_data_displays(eos_type)
                 self.update_status(message)
             else:
                 messagebox.showerror("Error", f"Failed to generate plot: {message}")
@@ -770,16 +810,103 @@ class SESAMEAnalysisGUI:
         self.conv_log.see(tk.END)
         self.root.update_idletasks()
     
+    def update_data_displays(self, eos_type):
+        """Update density and temperature data displays"""
+        if not self.analyzer.data_loaded:
+            return
+        
+        try:
+            # Get data from analyzer
+            eos_data = self.analyzer.eos_data
+            dens_key = f"{eos_type}_dens"
+            temp_key = f"{eos_type}_temps"
+            
+            if dens_key not in eos_data or temp_key not in eos_data:
+                return
+            
+            self.current_densities = eos_data[dens_key]
+            self.current_temperatures = eos_data[temp_key]
+            self.current_ion_densities = self.analyzer._calculate_ion_densities(self.current_densities)
+            
+            # Update density display
+            self.update_density_display()
+            
+            # Update temperature display
+            self.update_temperature_display()
+            
+        except Exception as e:
+            print(f"Error updating data displays: {e}")
+    
+    def update_density_display(self):
+        """Update density data display based on selected type"""
+        if not hasattr(self, 'current_densities'):
+            return
+        
+        self.density_data_text.delete(1.0, tk.END)
+        
+        density_type = self.density_type_var.get()
+        if density_type == "mass":
+            densities = self.current_densities
+            header = "Index\tMass Density (g/cm³)\n"
+        else:  # ion
+            densities = self.current_ion_densities
+            header = "Index\tIon Density (atoms/cm³)\n"
+        
+        self.density_data_text.insert(tk.END, header)
+        
+        for i, dens in enumerate(densities):
+            if dens > 1e-10:  # Only show valid data
+                self.density_data_text.insert(tk.END, f"{i}\t{dens:.6e}\n")
+    
+    def update_temperature_display(self):
+        """Update temperature data display"""
+        if not hasattr(self, 'current_temperatures'):
+            return
+        
+        self.temp_data_text.delete(1.0, tk.END)
+        self.temp_data_text.insert(tk.END, "Index\tTemperature (eV)\n")
+        
+        for i, temp in enumerate(self.current_temperatures):
+            if temp > 1e-10:  # Only show valid data
+                self.temp_data_text.insert(tk.END, f"{i}\t{temp:.6e}\n")
+    
+    def copy_density_data(self):
+        """Copy density data to clipboard"""
+        try:
+            data = self.density_data_text.get(1.0, tk.END)
+            if data.strip():
+                self.root.clipboard_clear()
+                self.root.clipboard_append(data)
+                density_type = "Mass" if self.density_type_var.get() == "mass" else "Ion"
+                messagebox.showinfo("Success", f"{density_type} density data copied to clipboard")
+            else:
+                messagebox.showinfo("Info", "No density data to copy.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to copy density data: {str(e)}")
+    
+    def copy_temp_data(self):
+        """Copy temperature data to clipboard"""
+        try:
+            data = self.temp_data_text.get(1.0, tk.END)
+            if data.strip():
+                self.root.clipboard_clear()
+                self.root.clipboard_append(data)
+                messagebox.showinfo("Success", "Temperature data copied to clipboard")
+            else:
+                messagebox.showinfo("Info", "No temperature data to copy.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to copy temperature data: {str(e)}")
+
     def show_about(self):
         """Show about dialog"""
-        about_text = """SESAME EoS Analysis Tool v2.1.1
+        about_text = """SESAME EoS Analysis Tool v2.2.0
 
 A standalone GUI application for analyzing SESAME equation of state files.
 
 Features:
 • Load and analyze SESAME EoS files
 • Generate comprehensive material reports  
-• Visualize density-temperature grids
+• Visualize density-temperature grids with data tables
 • Analyze pressure distributions with positive pressure detection
 • Analyze internal energy with improved positive energy algorithm
 • Enhanced interactive plots showing data values on hover
@@ -787,11 +914,11 @@ Features:
 
 Built with Python, tkinter, matplotlib, and opacplot2
 
-New in v2.1.0:
-• Improved minimum positive temperature algorithms
-• Enhanced plot layouts and interactions  
-• Better dependency management (hedp now required)
-• Optimized user interface with pressure analysis first
+New in v2.2.0:
+• Grid data tables for easy copy/paste operations
+• Enhanced D-T Grid visualization with detailed data display
+• Ion density coordinate axis support
+• Improved material reports with ion density information
 
 Dependencies automatically managed - runs out of the box!
 """

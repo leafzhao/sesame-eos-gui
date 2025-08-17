@@ -154,14 +154,43 @@ class SESAMEAnalyzer:
                 nonzero_dens = densities[densities > 1e-10]
                 nonzero_temp = temperatures[temperatures > 1e-10]
                 
+                # Calculate ion densities
+                ion_densities = self._calculate_ion_densities(densities)
+                nonzero_ion_dens = ion_densities[densities > 1e-10]
+                
                 report.append(f"  {eos_type.upper()} EoS:")
                 report.append(f"    Grid: {valid_dens} x {valid_temp} points")
                 if len(nonzero_dens) > 0:
-                    report.append(f"    Density range: {nonzero_dens.min():.2e} - {nonzero_dens.max():.2e} g/cm³")
+                    report.append(f"    Mass density range: {nonzero_dens.min():.2e} - {nonzero_dens.max():.2e} g/cm³")
+                if len(nonzero_ion_dens) > 0:
+                    report.append(f"    Ion density range: {nonzero_ion_dens.min():.2e} - {nonzero_ion_dens.max():.2e} atoms/cm³")
                 if len(nonzero_temp) > 0:
                     report.append(f"    Temperature range: {nonzero_temp.min():.2e} - {nonzero_temp.max():.2e} eV")
         
         report.append(f"\nTotal effective data points: {total_points:,}")
+        
+        # Ion density analysis section
+        report.append(f"\nIon Density Analysis:")
+        abar = self.eos_data.get('abar', 'N/A')
+        if abar != 'N/A' and abar > 0:
+            report.append(f"  Average atomic mass (abar): {abar:.3f} amu")
+            report.append(f"  Ion density calculation: ρ_ion = ρ_mass / (abar × 1.66054×10⁻²⁴)")
+            
+            # Find the main EoS type for detailed analysis
+            main_eos = 'total' if 'total' in self.available_eos_types else self.available_eos_types[0]
+            dens_key = f"{main_eos}_dens"
+            if dens_key in self.eos_data:
+                densities = self.eos_data[dens_key]
+                ion_densities = self._calculate_ion_densities(densities)
+                nonzero_dens = densities[densities > 1e-10]
+                nonzero_ion_dens = ion_densities[densities > 1e-10]
+                
+                if len(nonzero_dens) > 0 and len(nonzero_ion_dens) > 0:
+                    ratio_range = nonzero_ion_dens / nonzero_dens
+                    report.append(f"  Ion-to-mass density ratio range: {ratio_range.min():.2e} - {ratio_range.max():.2e}")
+        else:
+            report.append(f"  Average atomic mass: Not available")
+            report.append(f"  Ion density calculation: Using default abar = 10.0 amu")
         
         # Data quality assessment
         report.append(f"\nData Quality Assessment:")
@@ -185,7 +214,7 @@ class SESAMEAnalyzer:
         return "\n".join(report)
     
     def plot_density_temperature_grid(self, eos_type='total', save_path=None):
-        """Plot density-temperature grid visualization"""
+        """Plot density-temperature grid visualization with ion density axis"""
         if not self.data_loaded:
             return None, "No data loaded"
         
@@ -205,19 +234,48 @@ class SESAMEAnalyzer:
         nonzero_dens = densities[densities > 1e-10]
         nonzero_temp = temperatures[temperatures > 1e-10]
         
-        # Create plot
+        # Calculate ion densities using the method from opac_converter.py
+        ion_densities = self._calculate_ion_densities(densities)
+        nonzero_ion_dens = ion_densities[densities > 1e-10]
+        
+        # Create plot with larger size - ensure clean state and proper spacing
+        plt.close('all')  # Close any existing plots
         with plt.rc_context({'text.usetex': False, 'mathtext.default': 'regular'}):
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 7))
-            fig.subplots_adjust(left=0.08, right=0.95, top=0.92, bottom=0.12, wspace=0.25)
+            from matplotlib.gridspec import GridSpec
+            
+            fig = plt.figure(figsize=(20, 8))
+            
+            # Use GridSpec for precise control of subplot positions
+            gs = GridSpec(1, 2, figure=fig, left=0.05, right=0.95, top=0.92, bottom=0.10, 
+                         wspace=0.4, hspace=0.1)
+            
+            # Create subplots with explicit positioning
+            ax1 = fig.add_subplot(gs[0, 0])  # Left subplot for density
+            ax2 = fig.add_subplot(gs[0, 1])  # Right subplot for temperature
             
             if len(nonzero_dens) > 0:
                 dens_indices = np.where(densities > 1e-10)[0]
-                ax1.plot(dens_indices, nonzero_dens, 'bo-', markersize=4, alpha=0.7)
+                ax1.plot(dens_indices, nonzero_dens, 'bo-', markersize=4, alpha=0.8)
                 ax1.set_xlabel('Grid Point Index')
-                ax1.set_ylabel('Density [g/cm³]')
+                ax1.set_ylabel('Mass Density [g/cm³]', color='black')
                 ax1.set_yscale('log')
                 ax1.set_title(f'{eos_type.upper()} EoS Density Grid\n({len(nonzero_dens)}/{len(densities)} valid points)')
                 ax1.grid(True, alpha=0.3)
+                ax1.tick_params(axis='y', labelcolor='black')
+                
+                # Add ion density axis on the right - with strict boundary control
+                ax1_ion = ax1.twinx()
+                if len(nonzero_ion_dens) > 0:
+                    ax1_ion.plot(dens_indices, nonzero_ion_dens, 'bo-', markersize=4, alpha=0.8)
+                    ax1_ion.set_ylabel('Ion Number Density [atoms/cm³]', color='black', rotation=270, labelpad=15)
+                    ax1_ion.set_yscale('log')
+                    ax1_ion.tick_params(axis='y', labelcolor='black', labelsize=8)
+                    
+                    # Strictly confine the ion axis to the left subplot area
+                    ax1_ion.spines['right'].set_position(('axes', 1.0))
+                    ax1_ion.spines['right'].set_visible(True)
+                
+                # Remove the density data label as requested
             
             if len(nonzero_temp) > 0:
                 temp_indices = np.where(temperatures > 1e-10)[0]
@@ -228,12 +286,33 @@ class SESAMEAnalyzer:
                 ax2.set_title(f'{eos_type.upper()} EoS Temperature Grid\n({len(nonzero_temp)}/{len(temperatures)} valid points)')
                 ax2.grid(True, alpha=0.3)
             
-            # Layout is already adjusted above, no need for tight_layout
-            
             if save_path:
                 fig.savefig(save_path, dpi=150, bbox_inches='tight')
             
-            return fig, "Grid visualization completed"
+            return fig, "Grid visualization with ion density completed"
+    
+    def _calculate_ion_densities(self, mass_densities):
+        """Calculate ion number densities from mass densities using opac_converter approach"""
+        try:
+            # Use similar approach as opac_converter.py
+            # This is a simplified calculation - in practice, this would use material properties
+            # For now, assume average atomic mass ~ 10 amu for demonstration
+            abar = self.eos_data.get('abar', 10.0)  # Average atomic mass
+            if abar == 'N/A' or abar <= 0:
+                abar = 10.0  # Fallback value
+            
+            # Convert g/cm³ to atoms/cm³
+            # ion_density = mass_density / (abar * atomic_mass_unit)
+            # atomic_mass_unit = 1.66054e-24 g
+            atomic_mass_unit = 1.66054e-24
+            ion_densities = mass_densities / (abar * atomic_mass_unit)
+            
+            return ion_densities
+            
+        except Exception as e:
+            print(f"Warning: Ion density calculation failed: {e}")
+            # Return zeros if calculation fails
+            return np.zeros_like(mass_densities)
     
     def plot_internal_energy_distribution(self, eos_type='total', save_path=None):
         """Plot internal energy distribution and find minimum positive energy temperature"""
