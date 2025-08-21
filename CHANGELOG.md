@@ -1,6 +1,6 @@
 # SESAME EoS GUI - 修改日志 (Changelog)
 
-## v2.2.1 - 2025-01-21
+## v2.2.1 - 2025-08-21
 
 ### 🎨 压力分析可视化重大优化 (Major Pressure Analysis Visualization Enhancement)
 

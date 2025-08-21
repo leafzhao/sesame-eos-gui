@@ -167,7 +167,7 @@ If you encounter problems, please check:
 
 ## 📝 Changelog
 
-### v2.2.1 (2025-01)
+### v2.2.1 (2025-08)
 - **🎨 Major Pressure Analysis Enhancement**: Three-layer rendering strategy eliminates white boundary artifacts
 - **🔴 Negative Region Optimization**: Gray background for all non-positive pressure areas (P ≤ 0)
 - **📈 Logarithmic Positive Display**: nipy_spectral colormap with optimized logarithmic scaling
