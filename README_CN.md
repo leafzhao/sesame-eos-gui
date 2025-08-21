@@ -8,7 +8,7 @@
 ![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.2.1-blue.svg)
 
 **开箱即用的SESAME方程状态数据分析工具**
 
@@ -166,6 +166,14 @@ sesame-eos-gui/
 4. 终端/命令提示符的权限
 
 ## 📝 更新日志
+
+### v2.2.1 (2025-01)
+- **🎨 压力分析重大优化**: 三层渲染策略彻底消除白色边界伪影
+- **🔴 负压区域优化**: 所有非正压区域(P ≤ 0)使用灰色背景填充
+- **📈 对数正压显示**: 使用nipy_spectral色彩映射优化对数标尺可视化
+- **📊 专业级色条**: 真正的10^x指数格式显示(替换1e+08)，12个刻度标记
+- **🔄 智能EoS排序**: 优先级调整为ioncc > ele > ion > total，更好的默认选择
+- **🏷️ P=0等值线**: 黑色虚线标识零压强边界
 
 ### v2.2.0 (2024-08)
 - **🎯 核心修复**: 格式转换功能重大改进

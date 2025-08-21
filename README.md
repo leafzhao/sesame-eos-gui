@@ -8,7 +8,7 @@
 ![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.2.1-blue.svg)
 
 **A standalone GUI application for analyzing SESAME equation of state (EoS) data files**
 
@@ -166,6 +166,14 @@ If you encounter problems, please check:
 4. Terminal/command prompt permissions
 
 ## 📝 Changelog
+
+### v2.2.1 (2025-01)
+- **🎨 Major Pressure Analysis Enhancement**: Three-layer rendering strategy eliminates white boundary artifacts
+- **🔴 Negative Region Optimization**: Gray background for all non-positive pressure areas (P ≤ 0)
+- **📈 Logarithmic Positive Display**: nipy_spectral colormap with optimized logarithmic scaling
+- **📊 Professional Colorbar**: True 10^x exponential format (replacing 1e+08) with 12 tick marks
+- **🔄 Smart EoS Ordering**: Priority adjusted to ioncc > ele > ion > total for better defaults
+- **🏷️ P=0 Contour Lines**: Black dashed lines marking zero-pressure boundaries
 
 ### v2.2.0 (2024-08)
 - **🎯 Core Fix**: Major improvement to format conversion functionality

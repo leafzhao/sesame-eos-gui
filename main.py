@@ -106,7 +106,7 @@ class SESAMEAnalysisGUI:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("SESAME EoS Analysis Tool v2.2.0")
+        self.root.title("SESAME EoS Analysis Tool v2.2.1")
         self.root.geometry("1200x800")
         
         # Initialize components
@@ -530,7 +530,8 @@ class SESAMEAnalysisGUI:
             self.pres_eos_type_combo['values'] = available_types
             
             if available_types:
-                default_type = 'total' if 'total' in available_types else available_types[0]
+                # 使用第一个可用类型（已按优先级排序：ioncc > ele > ion > total）
+                default_type = available_types[0]
                 self.eos_type_var.set(default_type)
                 self.ie_eos_type_var.set(default_type)
                 self.pres_eos_type_var.set(default_type)
@@ -899,7 +900,7 @@ class SESAMEAnalysisGUI:
 
     def show_about(self):
         """Show about dialog"""
-        about_text = """SESAME EoS Analysis Tool v2.2.0
+        about_text = """SESAME EoS Analysis Tool v2.2.1
 
 A standalone GUI application for analyzing SESAME equation of state files.
 
@@ -914,11 +915,11 @@ Features:
 
 Built with Python, tkinter, matplotlib, and opacplot2
 
-New in v2.2.0:
-• Grid data tables for easy copy/paste operations
-• Enhanced D-T Grid visualization with detailed data display
-• Ion density coordinate axis support
-• Improved material reports with ion density information
+New in v2.2.1:
+• Major pressure analysis visualization enhancement with three-layer rendering
+• Professional colorbar formatting with 10^x exponential display  
+• Intelligent EoS type ordering (ioncc > ele > ion > total)
+• Gray background for non-positive pressure areas with P=0 contour lines
 
 Dependencies automatically managed - runs out of the box!
 """

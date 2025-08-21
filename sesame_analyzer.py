@@ -77,7 +77,7 @@ class SESAMEAnalyzer:
     def _analyze_eos_types(self):
         """Analyze available EoS data types"""
         self.available_eos_types = []
-        for eos_type in ['total', 'ele', 'ion', 'ioncc', 'cc']:
+        for eos_type in ['ioncc', 'ele', 'ion', 'total', 'cc']:
             dens_key = f"{eos_type}_dens"
             temp_key = f"{eos_type}_temps"
             if dens_key in self.eos_data and temp_key in self.eos_data:
@@ -490,27 +490,55 @@ class SESAMEAnalyzer:
             fig, ax = plt.subplots(figsize=(12, 9))
             fig.subplots_adjust(left=0.10, right=0.88, top=0.92, bottom=0.12)
             
-            # Convert to GPa (1 dyne/cm² = 1e-10 GPa)
-            P_GPa = valid_pressure * 1e-10
+            # 单位：GPa (原始数据已经是GPa，不需要转换)
+            P_GPa = valid_pressure
             
-            if P_GPa.min() < 0:
-                abs_max = max(abs(P_GPa.min()), abs(P_GPa.max()))
-                norm = SymLogNorm(linthresh=abs_max/1000, vmin=-abs_max, vmax=abs_max)
-                cs = ax.contourf(D, T, P_GPa, levels=50, norm=norm, cmap='RdYlBu_r')
+            # --- 优化策略：先填充灰色背景，再覆盖正值区域 ---
+            # 第一步：填充整个图表为灰色背景
+            ax.contourf(D, T, np.ones_like(P_GPa), levels=[0, 2], colors=['lightgray'], alpha=1.0)
+            
+            # 第二步：只在正值区域绘制彩色等高线
+            tiny = 1e-20
+            pos_mask = P_GPa > 0.0
+            
+            if np.any(pos_mask):
+                # 只处理正值数据，避免掩码边界问题
+                P_positive = np.where(pos_mask, np.maximum(P_GPa, tiny), tiny)
+                
+                # 计算对数等级
+                pos_values = P_GPa[pos_mask]
+                vmin = max(pos_values.min(), tiny)
+                vmax = pos_values.max()
+                levels = np.logspace(np.log10(vmin), np.log10(vmax), 80)
+                
+                # 只在正值区域绘制，使用extend='max'避免边界问题
+                cs = ax.contourf(D, T, P_positive, levels=levels,
+                                norm=LogNorm(vmin=vmin, vmax=vmax),
+                                cmap='nipy_spectral', extend='max', antialiased=False)
             else:
-                P_positive = np.where(P_GPa > 1e-6, P_GPa, 1e-6)
-                try:
-                    if P_positive.max() / P_positive.min() > 100:
-                        levels = np.logspace(np.log10(P_positive.min()), 
-                                           np.log10(P_positive.max()), 25)
-                        cs = ax.contourf(D, T, P_positive, levels=levels, norm=LogNorm(), cmap='viridis')
-                    else:
-                        cs = ax.contourf(D, T, P_GPa, levels=50, cmap='viridis')
-                except ValueError:
-                    cs = ax.contourf(D, T, P_GPa, levels=50, cmap='viridis')
+                # 如果没有正值，则创建一个虚拟的colorbar
+                cs = ax.contourf(D, T, np.ones_like(P_GPa) * tiny, levels=[tiny, tiny*10],
+                                norm=LogNorm(vmin=tiny, vmax=tiny*10), cmap='nipy_spectral')
+                
+            # --- 第三步：添加 P = 0 等值线 ---
+            try:
+                zero_contour = ax.contour(D, T, P_GPa, levels=[0.0], colors=['k'], 
+                                        linewidths=1.5, linestyles='--', alpha=0.8)
+                # ax.clabel(zero_contour, inline=True, fontsize=8, fmt='P = 0')
+            except:
+                pass  # 如果无法绘制P=0等值线，则跳过
             
+            # colorbar：美观的10^x指数格式显示
             cb = plt.colorbar(cs, ax=ax)
-            cb.set_label('Pressure [GPa]', fontsize=14)
+            cb.set_label('Pressure [GPa] (log scale; gray = P ≤ 0)', fontsize=14)
+            
+            # 设置colorbar为真正的10^x指数格式并增加显示数值数量
+            from matplotlib.ticker import LogFormatterMathtext, LogLocator
+            
+            # 设置更多的tick位置
+            cb.locator = LogLocator(base=10, numticks=12)
+            cb.formatter = LogFormatterMathtext(10, labelOnlyBase=False)
+            cb.update_ticks()
             
             # Enhanced cursor data display
             def format_coord(x, y):
@@ -538,7 +566,7 @@ class SESAMEAnalyzer:
             
             # Mark minimum positive pressure temperature if found
             if min_positive_pres_temp is not None:
-                ax.axhline(min_positive_pres_temp, color='cyan', linestyle='--', linewidth=2, alpha=0.8)
+                ax.axhline(min_positive_pres_temp, color='w', linestyle='--', linewidth=2, alpha=0.8)
                 
                 # Position label dynamically based on plot area
                 x_pos = valid_densities.min() * (valid_densities.max() / valid_densities.min()) ** 0.2
@@ -546,7 +574,7 @@ class SESAMEAnalyzer:
                 
                 ax.text(x_pos, y_pos, 
                        f'Min positive P temp = {min_positive_pres_temp:.2e} eV', 
-                       bbox=dict(boxstyle='round', facecolor='cyan', alpha=0.7, edgecolor='black'),
+                       bbox=dict(boxstyle='round', facecolor='w', alpha=0.7, edgecolor='black'),
                        fontsize=10, fontweight='bold')
             
             # Layout is already adjusted above, no need for tight_layout

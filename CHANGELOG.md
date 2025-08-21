@@ -1,5 +1,50 @@
 # SESAME EoS GUI - 修改日志 (Changelog)
 
+## v2.2.1 - 2025-01-21
+
+### 🎨 压力分析可视化重大优化 (Major Pressure Analysis Visualization Enhancement)
+
+#### 核心改进 (Core Improvements)
+- **🔴 负压区域优化 (Negative Pressure Region Enhancement)**：实现灰色背景填充所有非正压区域 (P ≤ 0)
+- **📈 对数正压显示 (Logarithmic Positive Pressure Display)**：使用nipy_spectral色彩映射和对数标尺优化正压值可视化
+- **🏷️ P=0等值线标注 (P=0 Contour Lines)**：添加黑色虚线标识零压强边界
+- **🛠️ 三层渲染策略 (Three-Layer Rendering Strategy)**：背景填充 → 正值覆盖 → 等值线，完全消除白色边界线问题
+
+#### 专业科学显示 (Professional Scientific Display)  
+- **📊 Colorbar格式优化 (Colorbar Format Enhancement)**：使用LogFormatterMathtext实现真正的10^x指数格式显示 (替代1e+08格式)
+- **🎯 数值密度提升 (Increased Tick Density)**：colorbar显示12个刻度标记，提供更精确的数值读取
+- **💯 GPa单位直接处理 (Direct GPa Unit Handling)**：移除不必要的单位转换，直接使用原始GPa数据
+
+#### EoS类型排序优化 (EoS Type Ordering Enhancement)
+- **🔄 智能默认选择 (Smart Default Selection)**：EoS类型优先级调整为 ioncc > ele > ion > total > cc
+- **🎛️ 界面同步更新 (UI Synchronization)**：GUI界面自动选择优先级最高的可用EoS类型
+
+### 🧮 算法技术细节 (Algorithm Technical Details)
+- **掩码边界问题解决方案 (Mask Boundary Issue Solution)**：采用正值直接覆盖策略，避免masked array边界伪影
+- **对数等级计算优化 (Logarithmic Level Calculation)**：动态计算80个对数等级，确保平滑色彩过渡
+- **抗锯齿关闭 (Anti-aliasing Disabled)**：`antialiased=False`防止边界模糊，保持清晰对比
+
+### 📋 修改文件清单 (Modified Files)
+1. **sesame_analyzer.py**
+   - `_analyze_eos_types()`: EoS类型排序 (line 80)
+   - `plot_pressure_distribution()`: 完整重写三层渲染策略 (lines 496-541)
+   - Colorbar格式化：LogFormatterMathtext + LogLocator (lines 536-541)
+
+2. **main.py**  
+   - `update_available_types()`: GUI默认类型选择逻辑 (lines 532-536)
+   - 版本号更新至v2.2.1
+
+3. **README.md & README_CN.md**
+   - 版本徽章更新至v2.2.1
+   - 新功能描述添加
+
+### 🎯 用户体验提升 (User Experience Enhancement)
+- **🔍 更直观的压力数据解读 (More Intuitive Pressure Data Interpretation)**：灰色区域清晰标识非物理压力值
+- **📊 专业级科学图表 (Professional Scientific Plotting)**：符合学术发表标准的指数格式显示
+- **⚡ 智能界面响应 (Smart Interface Response)**：根据数据可用性自动选择最佳EoS类型
+
+---
+
 ## v2.1.1 - 2025-08-13
 
 ### 🔧 依赖管理改进
