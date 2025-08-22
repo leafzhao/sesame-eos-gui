@@ -369,27 +369,30 @@ class SESAMEAnalyzer:
             fig, ax = plt.subplots(figsize=(12, 9))
             fig.subplots_adjust(left=0.10, right=0.88, top=0.92, bottom=0.12)
             
-            # Convert to MJ/kg
-            U_MJ = valid_internal_energy / 1e10
+            # Convert from erg/g to erg/cm³ by multiplying by density
+            # D has shape matching valid_internal_energy, so we can multiply directly
+            U_ergs_cc = valid_internal_energy * D
             
-            if U_MJ.min() < 0:
-                abs_max = max(abs(U_MJ.min()), abs(U_MJ.max()))
+            if U_ergs_cc.min() < 0:
+                abs_max = max(abs(U_ergs_cc.min()), abs(U_ergs_cc.max()))
                 norm = SymLogNorm(linthresh=abs_max/1000, vmin=-abs_max, vmax=abs_max)
-                cs = ax.contourf(D, T, U_MJ, levels=50, norm=norm, cmap='RdYlBu_r')
+                cs = ax.contourf(D, T, U_ergs_cc, levels=50, norm=norm, cmap='RdYlBu_r')
             else:
-                U_positive = np.where(U_MJ > 1e-6, U_MJ, 1e-6)
+                # 对于正值数据，设定最小阈值避免对数坐标问题
+                tiny = max(U_ergs_cc[U_ergs_cc > 0].min() * 0.001, 1e-10) if np.any(U_ergs_cc > 0) else 1e-10
+                U_positive = np.where(U_ergs_cc > tiny, U_ergs_cc, tiny)
                 try:
                     if U_positive.max() / U_positive.min() > 100:
                         levels = np.logspace(np.log10(U_positive.min()), 
                                            np.log10(U_positive.max()), 25)
                         cs = ax.contourf(D, T, U_positive, levels=levels, norm=LogNorm(), cmap='plasma')
                     else:
-                        cs = ax.contourf(D, T, U_MJ, levels=50, cmap='plasma')
+                        cs = ax.contourf(D, T, U_ergs_cc, levels=50, cmap='plasma')
                 except ValueError:
-                    cs = ax.contourf(D, T, U_MJ, levels=50, cmap='plasma')
+                    cs = ax.contourf(D, T, U_ergs_cc, levels=50, cmap='plasma')
             
             cb = plt.colorbar(cs, ax=ax)
-            cb.set_label('Internal Energy [MJ/kg]', fontsize=14)
+            cb.set_label('Internal Energy [erg/cm³]', fontsize=14)
             
             # Enhanced cursor data display
             def format_coord(x, y):
@@ -400,8 +403,8 @@ class SESAMEAnalyzer:
                     y_idx = np.argmin(np.abs(valid_temperatures - y))
                     
                     if x_idx < len(valid_densities) and y_idx < len(valid_temperatures):
-                        data_value = U_MJ[x_idx, y_idx]
-                        return f'ρ={x:.2e} g/cm³, T={y:.2e} eV, U={data_value:.3f} MJ/kg'
+                        data_value = U_ergs_cc[x_idx, y_idx]
+                        return f'ρ={x:.2e} g/cm³, T={y:.2e} eV, U={data_value:.2e} erg/cm³'
                     else:
                         return f'ρ={x:.2e} g/cm³, T={y:.2e} eV'
                 except:
@@ -490,23 +493,23 @@ class SESAMEAnalyzer:
             fig, ax = plt.subplots(figsize=(12, 9))
             fig.subplots_adjust(left=0.10, right=0.88, top=0.92, bottom=0.12)
             
-            # 单位：GPa (原始数据已经是GPa，不需要转换)
-            P_GPa = valid_pressure
+            # 单位：erg/cm³ (原始数据是dyne/cm²，等于erg/cm³)
+            P_ergs_cc = valid_pressure
             
             # --- 优化策略：先填充灰色背景，再覆盖正值区域 ---
             # 第一步：填充整个图表为灰色背景
-            ax.contourf(D, T, np.ones_like(P_GPa), levels=[0, 2], colors=['lightgray'], alpha=1.0)
+            ax.contourf(D, T, np.ones_like(P_ergs_cc), levels=[0, 2], colors=['lightgray'], alpha=1.0)
             
             # 第二步：只在正值区域绘制彩色等高线
             tiny = 1e-20
-            pos_mask = P_GPa > 0.0
+            pos_mask = P_ergs_cc > 0.0
             
             if np.any(pos_mask):
                 # 只处理正值数据，避免掩码边界问题
-                P_positive = np.where(pos_mask, np.maximum(P_GPa, tiny), tiny)
+                P_positive = np.where(pos_mask, np.maximum(P_ergs_cc, tiny), tiny)
                 
                 # 计算对数等级
-                pos_values = P_GPa[pos_mask]
+                pos_values = P_ergs_cc[pos_mask]
                 vmin = max(pos_values.min(), tiny)
                 vmax = pos_values.max()
                 levels = np.logspace(np.log10(vmin), np.log10(vmax), 80)
@@ -517,12 +520,12 @@ class SESAMEAnalyzer:
                                 cmap='nipy_spectral', extend='max', antialiased=False)
             else:
                 # 如果没有正值，则创建一个虚拟的colorbar
-                cs = ax.contourf(D, T, np.ones_like(P_GPa) * tiny, levels=[tiny, tiny*10],
+                cs = ax.contourf(D, T, np.ones_like(P_ergs_cc) * tiny, levels=[tiny, tiny*10],
                                 norm=LogNorm(vmin=tiny, vmax=tiny*10), cmap='nipy_spectral')
                 
             # --- 第三步：添加 P = 0 等值线 ---
             try:
-                zero_contour = ax.contour(D, T, P_GPa, levels=[0.0], colors=['k'], 
+                zero_contour = ax.contour(D, T, P_ergs_cc, levels=[0.0], colors=['k'], 
                                         linewidths=1.5, linestyles='--', alpha=0.8)
                 # ax.clabel(zero_contour, inline=True, fontsize=8, fmt='P = 0')
             except:
@@ -530,7 +533,7 @@ class SESAMEAnalyzer:
             
             # colorbar：美观的10^x指数格式显示
             cb = plt.colorbar(cs, ax=ax)
-            cb.set_label('Pressure [GPa] (log scale; gray = P ≤ 0)', fontsize=14)
+            cb.set_label('Pressure [erg/cm³] (log scale; gray = P ≤ 0)', fontsize=14)
             
             # 设置colorbar为真正的10^x指数格式并增加显示数值数量
             from matplotlib.ticker import LogFormatterMathtext, LogLocator
@@ -549,8 +552,8 @@ class SESAMEAnalyzer:
                     y_idx = np.argmin(np.abs(valid_temperatures - y))
                     
                     if x_idx < len(valid_densities) and y_idx < len(valid_temperatures):
-                        data_value = P_GPa[x_idx, y_idx]
-                        return f'ρ={x:.2e} g/cm³, T={y:.2e} eV, P={data_value:.3f} GPa'
+                        data_value = P_ergs_cc[x_idx, y_idx]
+                        return f'ρ={x:.2e} g/cm³, T={y:.2e} eV, P={data_value:.2e} erg/cm³'
                     else:
                         return f'ρ={x:.2e} g/cm³, T={y:.2e} eV'
                 except:
