@@ -245,8 +245,8 @@ class SESAMEAnalyzer:
             
             fig = plt.figure(figsize=(20, 8))
             
-            # Use GridSpec for precise control of subplot positions - reduce left/right margins
-            gs = GridSpec(1, 2, figure=fig, left=0.08, right=0.92, top=0.88, bottom=0.15, 
+            # Use GridSpec for precise control of subplot positions - increase top margin for titles
+            gs = GridSpec(1, 2, figure=fig, left=0.08, right=0.92, top=0.85, bottom=0.15, 
                          wspace=0.35, hspace=0.1)
             
             # Create subplots with explicit positioning
@@ -263,18 +263,17 @@ class SESAMEAnalyzer:
                 ax1.grid(True, alpha=0.3)
                 ax1.tick_params(axis='y', labelcolor='black')
                 
-                # Add ion density axis on the right - with strict boundary control  
+                # Add ion density axis on the right - with strict boundary control
                 ax1_ion = ax1.twinx()
                 if len(nonzero_ion_dens) > 0:
-                    ax1_ion.plot(dens_indices, nonzero_ion_dens, 'ro-', markersize=3, alpha=0.6, linewidth=1.5)
-                    ax1_ion.set_ylabel('Ion Number Density [atoms/cm³]', color='red', rotation=270, labelpad=20)
+                    ax1_ion.plot(dens_indices, nonzero_ion_dens, 'bo-', markersize=4, alpha=0.8)
+                    ax1_ion.set_ylabel('Ion Number Density [atoms/cm³]', color='black', rotation=270, labelpad=15)
                     ax1_ion.set_yscale('log')
-                    ax1_ion.tick_params(axis='y', labelcolor='red', labelsize=9)
+                    ax1_ion.tick_params(axis='y', labelcolor='black', labelsize=8)
                     
-                    # Strictly confine the ion axis to the left subplot area and ensure proper spacing
+                    # Strictly confine the ion axis to the left subplot area
                     ax1_ion.spines['right'].set_position(('axes', 1.0))
                     ax1_ion.spines['right'].set_visible(True)
-                    ax1_ion.spines['right'].set_color('red')
                 
                 # Remove the density data label as requested
             
@@ -370,24 +369,23 @@ class SESAMEAnalyzer:
             fig, ax = plt.subplots(figsize=(12, 9))
             fig.subplots_adjust(left=0.10, right=0.88, top=0.92, bottom=0.12)
             
-            # Convert from erg/g to erg/cm³ by multiplying by density
-            # D has shape matching valid_internal_energy, so we can multiply directly
-            U_ergs_cc = valid_internal_energy * D
+            # Internal energy data is already in erg/g units - use directly
+            U_ergs_g = valid_internal_energy
             
             # --- 采用与Pressure Analysis相同的优化渲染策略 ---
             # 第一步：填充整个图表为灰色背景（对负值区域）
-            ax.contourf(D, T, np.ones_like(U_ergs_cc), levels=[0, 2], colors=['lightgray'], alpha=1.0)
+            ax.contourf(D, T, np.ones_like(U_ergs_g), levels=[0, 2], colors=['lightgray'], alpha=1.0)
             
             # 第二步：只在正值区域绘制彩色等高线
             tiny = 1e-20
-            pos_mask = U_ergs_cc > 0.0
+            pos_mask = U_ergs_g > 0.0
             
             if np.any(pos_mask):
                 # 只处理正值数据，避免掩码边界问题
-                U_positive = np.where(pos_mask, np.maximum(U_ergs_cc, tiny), tiny)
+                U_positive = np.where(pos_mask, np.maximum(U_ergs_g, tiny), tiny)
                 
                 # 计算对数等级
-                pos_values = U_ergs_cc[pos_mask]
+                pos_values = U_ergs_g[pos_mask]
                 vmin = max(pos_values.min(), tiny)
                 vmax = pos_values.max()
                 levels = np.logspace(np.log10(vmin), np.log10(vmax), 80)
@@ -398,19 +396,19 @@ class SESAMEAnalyzer:
                                 cmap='nipy_spectral', extend='max', antialiased=False)
             else:
                 # 如果没有正值，则创建一个虚拟的colorbar
-                cs = ax.contourf(D, T, np.ones_like(U_ergs_cc) * tiny, levels=[tiny, tiny*10],
+                cs = ax.contourf(D, T, np.ones_like(U_ergs_g) * tiny, levels=[tiny, tiny*10],
                                 norm=LogNorm(vmin=tiny, vmax=tiny*10), cmap='nipy_spectral')
             
             # --- 第三步：添加 U = 0 等值线 ---
             try:
-                zero_contour = ax.contour(D, T, U_ergs_cc, levels=[0.0], colors=['k'], 
+                zero_contour = ax.contour(D, T, U_ergs_g, levels=[0.0], colors=['k'], 
                                         linewidths=1.5, linestyles='--', alpha=0.8)
             except:
                 pass  # 如果无法绘制U=0等值线，则跳过
             
             # colorbar：美观的10^x指数格式显示
             cb = plt.colorbar(cs, ax=ax)
-            cb.set_label('Internal Energy [erg/cm³] (log scale; gray = U ≤ 0)', fontsize=14)
+            cb.set_label('Internal Energy [erg/g] (log scale; gray = U ≤ 0)', fontsize=14)
             
             # 设置colorbar为真正的10^x指数格式并增加显示数值数量
             from matplotlib.ticker import LogFormatterMathtext, LogLocator
@@ -429,8 +427,8 @@ class SESAMEAnalyzer:
                     y_idx = np.argmin(np.abs(valid_temperatures - y))
                     
                     if x_idx < len(valid_densities) and y_idx < len(valid_temperatures):
-                        data_value = U_ergs_cc[x_idx, y_idx]
-                        return f'ρ={x:.2e} g/cm³, T={y:.2e} eV, U={data_value:.2e} erg/cm³'
+                        data_value = U_ergs_g[x_idx, y_idx]
+                        return f'ρ={x:.2e} g/cm³, T={y:.2e} eV, U={data_value:.2e} erg/g'
                     else:
                         return f'ρ={x:.2e} g/cm³, T={y:.2e} eV'
                 except:
